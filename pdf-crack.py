@@ -1,56 +1,54 @@
+import pikepdf
 import tkinter as tk
 from tkinter import filedialog
-import pikepdf
-import threading
 
-def crack_pdf_password(file_path, wordlist_path):
+def browse_pdf():
+    pdf_path = filedialog.askopenfilename()
+    pdf_entry.delete(0, tk.END)
+    pdf_entry.insert(0, pdf_path)
+
+def browse_wordlist():
+    wordlist_path = filedialog.askopenfilename()
+    wordlist_entry.delete(0, tk.END)
+    wordlist_entry.insert(0, wordlist_path)
+
+def crack_pdf_password():
+    pdf_path = pdf_entry.get()
+    wordlist_path = wordlist_entry.get()
+
     with open(wordlist_path, 'r') as wordlist_file:
         for word in wordlist_file:
             word = word.strip()
             try:
-                pdf_file = pikepdf.Pdf.open(file_path, password=word)
-                print(f"Password cracked: {word}")
-                return word
-            except pikepdf._qpdf.PasswordError:
+                pdf = pikepdf.Pdf.open(pdf_path, password=word)
+                success_label.config(text=f"Success! The password is {word}")
+                break
+            except pikepdf.PasswordError:
                 pass
-    print("Password not found in wordlist.")
-    return None
-
-def browse_file():
-    file_path = filedialog.askopenfilename(filetypes=[("PDF Files", "*.pdf")])
-    file_entry.delete(0, tk.END)
-    file_entry.insert(0, file_path)
-
-def browse_wordlist():
-    wordlist_path = filedialog.askopenfilename(filetypes=[("Text Files", "*.txt")])
-    wordlist_entry.delete(0, tk.END)
-    wordlist_entry.insert(0, wordlist_path)
-
-def start_cracking():
-    file_path = file_entry.get()
-    wordlist_path = wordlist_entry.get()
-    if file_path and wordlist_path:
-        crack_thread = threading.Thread(target=crack_pdf_password, args=(file_path, wordlist_path))
-        crack_thread.start()
 
 root = tk.Tk()
 root.title("PDF Password Cracker")
 
-file_label = tk.Label(root, text="PDF File:")
-file_label.grid(row=0, column=0, padx=10, pady=10)
-file_entry = tk.Entry(root, width=50)
-file_entry.grid(row=0, column=1, padx=10, pady=10)
-file_button = tk.Button(root, text="Browse...", command=browse_file)
-file_button.grid(row=0, column=2, padx=10, pady=10)
+pdf_label = tk.Label(root, text="PDF file path:")
+pdf_label.pack()
+pdf_entry = tk.Entry(root, width=50)
+pdf_entry.pack()
 
-wordlist_label = tk.Label(root, text="Wordlist File:")
-wordlist_label.grid(row=1, column=0, padx=10, pady=10)
+browse_pdf_button = tk.Button(root, text="Browse", command=browse_pdf)
+browse_pdf_button.pack()
+
+wordlist_label = tk.Label(root, text="Wordlist file path:")
+wordlist_label.pack()
 wordlist_entry = tk.Entry(root, width=50)
-wordlist_entry.grid(row=1, column=1, padx=10, pady=10)
-wordlist_button = tk.Button(root, text="Browse...", command=browse_wordlist)
-wordlist_button.grid(row=1, column=2, padx=10, pady=10)
+wordlist_entry.pack()
 
-crack_button = tk.Button(root, text="Crack Password", command=start_cracking)
-crack_button.grid(row=2, column=1, padx=10, pady=10)
+browse_wordlist_button = tk.Button(root, text="Browse", command=browse_wordlist)
+browse_wordlist_button.pack()
+
+crack_button = tk.Button(root, text="Crack password", command=crack_pdf_password)
+crack_button.pack()
+
+success_label = tk.Label(root, text="")
+success_label.pack()
 
 root.mainloop()
